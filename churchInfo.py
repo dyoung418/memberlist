@@ -17,10 +17,22 @@ def print_CSV(households, units, file):
     for unit in units:
         unitNames[unit['unitNumber']] = unit['name']
 
+    houses_seen = {} # Keep track of which houses we've seen by UUID so we don't duplicate
+    members_seen = {} # Keep track of which members we've seen by UUID so we don't duplicate
     writer = csv.writer(file)
     writer.writerow(["Name","Household","Unit","Address","Phone","Email","Birthdate","Positions"])
     for house in households:
+        if house['uuid'] in houses_seen:
+            continue
+        else:
+            houses_seen[house['uuid']] = True
+
         for member in house['members']:
+            if member['uuid'] in members_seen:
+                continue
+            else:
+                members_seen[member['uuid']] = True
+
             positions : list = []
             if 'positions' in member:
                 for pos in member['positions']:
@@ -95,7 +107,6 @@ def get_units(username : str, password : str) -> json:
             password = getpass(prompt="Please enter your Church Password: ")
             
         api = ChurchOfJesusChristAPI(username, password)
-        print(f"{api.user_details}")
 
         #print(f"Mobile sync data: {api.get_mobile_sync_data()}")
         units = api.get_units(parent_unit = api.user_details['parentUnits'][0])
@@ -127,6 +138,7 @@ def main():
     else:
         info = get_households(args.username, args.password)
         units : json = get_units(args.username, args.password)
+
         print(f"got {len(info)} Households")
         if args.file != sys.stdout:
             args.file = open(args.file, "w")
