@@ -51,7 +51,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username', default=environ.get("CJC_USERNAME", None))
     parser.add_argument('-p', '--password', default=environ.get("CJC_PASSWORD", None))
-    parser.add_argument('-f', '--file', help="Save output scv to file", default=sys.stdout)
+    parser.add_argument('-f', '--file', help="Save output csv to file", default=sys.stdout)
 
     args = parser.parse_args()
     members : json
