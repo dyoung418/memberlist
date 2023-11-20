@@ -4,27 +4,33 @@ import argparse
 from os import environ
 import json
 import sys
+import csv
 from getpass import getpass
 
 # From: https://church-of-jesus-christ-api.readthedocs.io/en/latest/index.html
 from church_of_jesus_christ_api import ChurchOfJesusChristAPI
 
 def print_CSV(households, file):
-    """ Print the member information to a comma seperated file
-        Surround each field with quotes so that internal commas and newlines don't break them
+    """ Print a CSV of the households
     """
-    print("Name,Household,Address,Phone,Email,Birthdate", file=file)
+    writer = csv.writer(file)
+    writer.writerow(["Name","Household","UnitNumber","Address","Phone","Email","Birthdate","Positions"])
     for house in households:
         for member in house['members']:
-            print("\"{NAME}\",\"{HOUSEHOLD}\",\"{ADDRESS}\",\"{PHONE}\",\"{EMAIL}\",\"{BIRTHDATE}\"".format(
-                    NAME=member['preferredName'],
-                    HOUSEHOLD=house['displayName'],
-                    ADDRESS=house['address'],
-                    PHONE=member['phone'],
-                    EMAIL=member['email'],
-                    BIRTHDATE=member['birthDate'],
-                    )
-                                    , file=file)
+            positions : list = []
+            if 'positions' in member:
+                for pos in member['positions']:
+                    positions.append(pos['name'])
+            writer.writerow([
+                member['preferredName'],
+                house['displayName'],
+                house['unitNumber'],
+                house['address'] if 'address' in house else '',
+                member['phone'] if 'phone' in member else '',
+                member['email'] if 'email' in member else '',
+                member['birthDate'] if 'birthDate' in member else ''
+                "\n".join(positions) if positions else ''
+            ])
 
 
 def get_self_info_and_households(username : str, password : str) -> json:
@@ -65,7 +71,7 @@ def main():
     # Store a dictionary of households, using uuid to dedup
     entries = {}
     for hh in households:
-        entries[f"{hh['displayName']}{hh['uuid']}"] = hh['displayName']
+        entries[f"{hh['displayName']}{hh['uuid']}"] = hh
 
     print(f"got {len(entries)} Households")
     if args.file != sys.stdout:
