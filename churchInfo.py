@@ -45,7 +45,7 @@ def print_CSV(households, units, file):
                 member['phone'] if 'phone' in member else '',
                 member['email'] if 'email' in member else '',
                 member['birthDate'] if 'birthDate' in member else '',
-                "\n".join(positions) if positions else ''
+                ",\n".join(positions) if positions else ''
             ])
 
 def get_self_info(username : str, password : str) -> json:
