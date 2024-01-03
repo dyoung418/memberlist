@@ -70,6 +70,27 @@ def get_self_info(username : str, password : str) -> json:
           cache.write(json.dumps(info, indent=2))
         return info
 
+def get_self_photo(username : str, password : str) -> json:
+    """ Get raw photo as jpeg for specified user (UUID)
+    """
+    CACHE_FILE='photo.jpg'
+    try:
+        with open(CACHE_FILE, 'r') as cache:
+            return cache.read()
+    except OSError:
+        #  Ensure the username and password is s
+        assert username, "Please set your username with the -u arg or CJC_USERNAME environment variable"
+        if not password:
+            password = getpass(prompt="Please enter your Church Password: ")
+            
+        api = ChurchOfJesusChristAPI(username, password)
+
+        info = api.download_member_photo(api.user_details['uuid'], 15)
+
+        with open(CACHE_FILE, 'w') as cache:
+          cache.write(info)
+        return info
+
 def get_households(username : str, password : str) -> json:
     """ Get the Member information, Use Cache file if it exists, otherwise query api
     """
@@ -126,6 +147,7 @@ def main():
     parser.add_argument('-s', '--self', help="Show info on self", action='store_true')
     parser.add_argument('-w', '--ward', help="Show info on wards in stake", action='store_true')
     parser.add_argument('-l', '--household_list', help="Show info on households in stake (default)", action='store_true')
+    parser.add_argument('-d', '--download_photo', help="Download photo of self", action='store_true')
 
     args = parser.parse_args()
     info : json
@@ -135,6 +157,9 @@ def main():
     elif args.ward:
         info = get_units(args.username, args.password)
         print(f"{json.dumps(info, indent=2)}")
+    elif args.download_photo:
+        info = get_self_photo(args.username, args.password)
+        print(f"check in photo.jpg")
     else:
         info = get_households(args.username, args.password)
         units : json = get_units(args.username, args.password)
